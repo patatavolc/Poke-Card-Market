@@ -45,3 +45,32 @@ async function fetchAllSets() {
   }
   return allSets;
 }
+
+async function fetchCardsForSet(setId) {
+  let allCards = [];
+  let page = 1;
+  let hasMore = true;
+
+  while(hasMore) {
+    try {
+      // Buscar cartas por set.id
+      const response = await apiClient.get('/cards', {
+        params: { q: `set.id:${setId}`, page, pageSize: 250}
+      });
+
+      const { data, totalCount } = response.data;
+      allCards = [...allCards, ...data];
+
+      if (allCards.length >= totalCount) {
+        hasMore = false
+      } else {
+        page++;
+      }
+    } catch(error) {
+      console.error(`Error obteniendo cartas del set ${setId}:`, error.message);
+      hasMore = false;
+    }
+  }
+  return allCards;
+}
+
