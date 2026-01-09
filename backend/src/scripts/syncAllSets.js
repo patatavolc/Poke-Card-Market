@@ -110,3 +110,29 @@ async function saveCardsToDb(cards, setId) {
     client.release();
   }
 }
+
+async function main() {
+  try {
+    // Obtener todos los sets
+    const sets = await fetchAllSets();
+    console.log(`Total de sets a procesar: ${sets.length}`);
+
+    // Procesarlos
+    for (const set of sets) {
+      const card = await fetchCardsForSet(set.id);
+
+      // Guardar en db
+      await saveCardsToDb(cards, set.id);
+
+      await sleep(500);
+    }
+
+    console.log("Sincronizacion completada con exito");
+  } catch (error) {
+    console.error(`Error:`, error);
+  } finally {
+    await pool.end();
+  }
+}
+
+main();
