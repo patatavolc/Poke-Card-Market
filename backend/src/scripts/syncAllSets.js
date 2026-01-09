@@ -1,46 +1,21 @@
-import axios, { all } from "axios";
-import pool from "../config/db";
-import "dotenv/config";
-import { createRef } from "react";
+import { syncSetsAndCards } from '../services/pokemonSync.js';
+import pool from '../config/db.js'; 
 
-const API_URL = "https://api.pokemontcg.io/v2";
-const API_KEY = process.env.POKEMON_API_KEY;
+async function ejecutarManualmente() {
+  console.log("--- INICIO DE EJECUCIÓN MANUAL ---");
+  
+  const inicio = Date.now();
 
-// Configuracion de axios
-const apiClient = axios.create({
-  baseURL: API_URL,
-  headers: { "X-Api-Key": API_KEY },
-});
+  // Llamamos a la lógica compartida
+  await syncSetsAndCards();
+  
+  const fin = Date.now();
+  const duracion = ((fin - inicio) / 1000).toFixed(2);
 
-// Funcion para pausar las peticiones
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-
-
-
-
-async function main() {
-  try {
-    // Obtener todos los sets
-    const sets = await fetchAllSets();
-    console.log(`Total de sets a procesar: ${sets.length}`);
-
-    // Procesarlos
-    for (const set of sets) {
-      const card = await fetchCardsForSet(set.id);
-
-      // Guardar en db
-      await saveCardsToDb(cards, set.id);
-
-      await sleep(500);
-    }
-
-    console.log("Sincronizacion completada con exito");
-  } catch (error) {
-    console.error(`Error:`, error);
-  } finally {
-    await pool.end();
-  }
+  console.log(`--- FIN DE EJECUCIÓN MANUAL (${duracion}s) ---`);
+  
+  // Cerramos la conexión a la DB para que el script termine
+  await pool.end();
 }
 
-main();
+ejecutarManualmente();
