@@ -97,8 +97,6 @@ async function fetchCardsForSet(setId) {
 
 
 async function saveCardsToDb(cards, setId) {
-  if (cards.length === 0) return;
-
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -107,7 +105,9 @@ async function saveCardsToDb(cards, setId) {
     const queryText = `
       INSERT INTO card (id, name, set_id, rarity, image_url)
       VALUES ($1, $2, $3, $4, $5)
-      ON CONFLICT (id) DO NOTHING;
+      ON CONFLICT (id) DO UPDATE
+      SET image_url = EXLUDED.image_url,
+          rarity = EXCLUDED.rarity;
     `;
 
     for (const carta of cards) {
